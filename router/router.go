@@ -21,6 +21,11 @@ func NewRouter(e *echo.Echo, srv *handler.Server) *echo.Echo {
 		return nil
 	})
 
+	e.GET("/subscriptions", func(c echo.Context) error {
+		srv.ServeHTTP(c.Response(), c.Request())
+		return nil
+	})
+
 	e.GET("/playground", func(c echo.Context) error {
 		playground.Handler("GraphQL", "/query").ServeHTTP(c.Response(), c.Request())
 		return nil
