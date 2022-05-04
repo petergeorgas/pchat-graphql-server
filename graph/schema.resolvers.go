@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"pchatserver/graph/generated"
 	"pchatserver/graph/model"
@@ -18,7 +19,7 @@ func (r *mutationResolver) CreateMessage(ctx context.Context, message string, us
 	m := model.Message{
 		Message:   message,
 		Username:  username,
-		Timestamp: string(time.Now().UnixMilli()),
+		Timestamp: fmt.Sprintf("%d", time.Now().UnixMilli()),
 	}
 
 	r.RedisClient.XAdd(&redis.XAddArgs{
