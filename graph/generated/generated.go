@@ -53,7 +53,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateMessage func(childComplexity int, message string) int
+		CreateMessage func(childComplexity int, message string, username string) int
 	}
 
 	Query struct {
@@ -66,7 +66,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateMessage(ctx context.Context, message string) (*model.Message, error)
+	CreateMessage(ctx context.Context, message string, username string) (*model.Message, error)
 }
 type QueryResolver interface {
 	Messages(ctx context.Context) ([]*model.Message, error)
@@ -128,7 +128,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateMessage(childComplexity, args["message"].(string)), true
+		return e.complexity.Mutation.CreateMessage(childComplexity, args["message"].(string), args["username"].(string)), true
 
 	case "Query.messages":
 		if e.complexity.Query.Messages == nil {
@@ -240,7 +240,7 @@ type Query {
 }
 
 type Mutation {
-	createMessage(message: String!): Message
+	createMessage(message: String!, username: String!): Message
 }
 
 type Subscription {
@@ -266,6 +266,15 @@ func (ec *executionContext) field_Mutation_createMessage_args(ctx context.Contex
 		}
 	}
 	args["message"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg1
 	return args, nil
 }
 
@@ -512,7 +521,7 @@ func (ec *executionContext) _Mutation_createMessage(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateMessage(rctx, fc.Args["message"].(string))
+		return ec.resolvers.Mutation().CreateMessage(rctx, fc.Args["message"].(string), fc.Args["username"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

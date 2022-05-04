@@ -10,7 +10,7 @@ type Query {
 }
 
 type Mutation {
-	createMessage(message: String!): Message
+	createMessage(message: String!, username: String!): Message
 }
 
 type Subscription {
