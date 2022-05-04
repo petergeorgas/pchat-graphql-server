@@ -3,6 +3,8 @@
 package model
 
 type Message struct {
-	ID      string `json:"id"`
-	Message string `json:"message"`
+	ID        string `json:"id"`
+	Message   string `json:"message"`
+	Username  string `json:"username"`
+	Timestamp string `json:"timestamp"`
 }

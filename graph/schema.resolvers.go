@@ -5,25 +5,29 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"log"
 	"pchatserver/graph/generated"
 	"pchatserver/graph/model"
+	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/thanhpk/randstr"
 )
 
-func (r *mutationResolver) CreateMessage(ctx context.Context, message string) (*model.Message, error) {
+func (r *mutationResolver) CreateMessage(ctx context.Context, message string, username string) (*model.Message, error) {
 	m := model.Message{
-		Message: message,
+		Message:   message,
+		Username:  username,
+		Timestamp: string(time.Now().UnixMilli()),
 	}
 
 	r.RedisClient.XAdd(&redis.XAddArgs{
 		Stream: "room",
 		ID:     "*",
 		Values: map[string]interface{}{
-			"message": m.Message,
+			"message":   m.Message,
+			"username":  m.Username,
+			"timestamp": m.Timestamp,
 		},
 	})
 
@@ -34,7 +38,7 @@ func (r *queryResolver) Messages(ctx context.Context) ([]*model.Message, error) 
 	streams, err := r.RedisClient.XRead(&redis.XReadArgs{
 		Streams: []string{"room", "0"},
 	}).Result()
-	if !errors.Is(err, nil) {
+	if err != nil {
 		return nil, err
 	}
 
@@ -43,8 +47,10 @@ func (r *queryResolver) Messages(ctx context.Context) ([]*model.Message, error) 
 	ms := make([]*model.Message, len(stream.Messages))
 	for i, v := range stream.Messages {
 		ms[i] = &model.Message{
-			ID:      v.ID,
-			Message: v.Values["message"].(string),
+			ID:        v.ID,
+			Message:   v.Values["message"].(string),
+			Username:  v.Values["username"].(string),
+			Timestamp: v.Values["timestamp"].(string),
 		}
 	}
 
